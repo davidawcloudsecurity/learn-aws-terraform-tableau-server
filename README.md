@@ -6,15 +6,15 @@ Get-Content 'C:\ProgramData\Tableau\Tableau Server\data\tabsvc\logs\tabadmincont
 Here's the updated version with the path hardcoded in the script:
 
 ```powershell
-# Real-time log monitor for ServiceTimeoutException with hardcoded path
+# Real-time log monitor with debug output
+$Path = "C:\ProgramData\Tableau\Tableau Server\data\tabsvc\logs"  # Modified to your actual path
+$FilePattern = "*.log"               # Modified to catch all logs
+$PollInterval = 1000                 # Milliseconds between checks (1 second)
+$ContextLines = 2                    # Number of lines before/after to show
+$SearchTerm = "ERROR"                 # Term to search for
+$Debug = $true                       # Enable debug output
 
-# Configuration - Modify these values as needed
-$Path = "C:\Logs"                      # Hardcoded path to monitor
-$FilePattern = "*.log"                 # File pattern to monitor
-$PollInterval = 1000                   # Milliseconds between checks (1 second)
-$ContextLines = 2                      # Number of lines before/after to show
-
-# Function to process new content and find exceptions
+# Function to process new content
 function Process-NewContent {
     param (
         [string]$FilePath,
@@ -22,96 +22,84 @@ function Process-NewContent {
         [int]$ContextLines
     )
     
-    $content = Get-Content -Path $FilePath
-    $totalLines = $content.Count
-    
-    if ($totalLines -gt $StartLine) {
-        # Process new lines only
-        $newLines = $content[$StartLine..($totalLines - 1)]
-        $currentLine = $StartLine
+    try {
+        # Read all content every time - inefficient but reliable for testing
+        $content = Get-Content -Path $FilePath -Raw | ForEach-Object {$_ -split "`r`n"}
+        $totalLines = $content.Count
         
-        foreach ($line in $newLines) {
-            $currentLine++
-            $fields = $line -split "`t"
-            
-            if ($fields -imatch "ServiceTimeoutException") {
-                # Get context lines
-                $startContext = [Math]::Max(0, $currentLine - $ContextLines - 1)
-                $endContext = [Math]::Min($totalLines - 1, $currentLine + $ContextLines - 1)
-                
-                Write-Host "`n[$(Get-Date)] ServiceTimeoutException found in $($FilePath):" -ForegroundColor Red
-                Write-Host "Line $currentLine context:" -ForegroundColor Yellow
-                
-                # Show context before
-                for ($i = $startContext; $i -lt $currentLine - 1; $i++) {
-                    Write-Host "  [$($i + 1)] $($content[$i])" -ForegroundColor Gray
-                }
-                
-                # Highlight the exception line
-                Write-Host "> [$currentLine] $line" -ForegroundColor Red
-                
-                # Show context after
-                for ($i = $currentLine; $i -le $endContext; $i++) {
-                    Write-Host "  [$($i + 1)] $($content[$i])" -ForegroundColor Gray
-                }
-                
-                Write-Host "Possible causes: Connection issues, service overload, or timeout configuration" -ForegroundColor Cyan
-                Write-Host "" # Empty line for readability
-            }
+        if ($Debug) {
+            Write-Host "Debug: File $FilePath has $totalLines total lines, starting from line $StartLine" -ForegroundColor Gray
         }
-        return $totalLines
+        
+        if ($totalLines -gt $StartLine) {
+            $newLines = $content[$StartLine..($totalLines - 1)]
+            if ($Debug) {
+                Write-Host "Debug: Processing $(($totalLines - $StartLine)) new lines" -ForegroundColor Gray
+            }
+            
+            $currentLine = $StartLine
+            foreach ($line in $newLines) {
+                if ($Debug) {
+                    Write-Host "Debug: Checking line: $line" -ForegroundColor Gray
+                }
+                
+                if ($line -match $SearchTerm) {
+                    Write-Host "`nMatch found at line $($currentLine + 1):" -ForegroundColor Green
+                    Write-Host $line -ForegroundColor Yellow
+                }
+                $currentLine++
+            }
+            return $totalLines
+        }
+        return $StartLine
     }
-    return $StartLine
+    catch {
+        Write-Warning "Error in Process-NewContent: $($_.Exception.Message)"
+        return $StartLine
+    }
 }
 
 try {
-    # Validate path exists
     if (-not (Test-Path $Path)) {
-        Write-Error "Specified path '$Path' does not exist!"
-        exit
+        throw "Path '$Path' does not exist!"
     }
 
-    # Get initial list of files
-    $files = Get-ChildItem -Path $Path -Filter $FilePattern -Recurse
     $filePositions = @{}
-    
-    # Initialize starting position for each file
-    foreach ($file in $files) {
-        $filePositions[$file.FullName] = (Get-Content -Path $file.FullName).Count
-        Write-Host "Monitoring: $($file.FullName)" -ForegroundColor Green
-    }
-    
-    Write-Host "Starting real-time monitoring of '$Path' (Ctrl+C to stop)..." -ForegroundColor Cyan
-    Write-Host "Looking for ServiceTimeoutException occurrences..." -ForegroundColor Cyan
-    
-    # Main monitoring loop
+    Write-Host "`nStarting monitoring of $Path" -ForegroundColor Cyan
+    Write-Host "Looking for '$SearchTerm' in files matching '$FilePattern'" -ForegroundColor Cyan
+    Write-Host "Press Ctrl+C to stop`n" -ForegroundColor Cyan
+
     while ($true) {
+        # Get current files
         $currentFiles = Get-ChildItem -Path $Path -Filter $FilePattern -Recurse
         
-        # Check for new files
+        # Add any new files to monitoring
         foreach ($file in $currentFiles) {
             if (-not $filePositions.ContainsKey($file.FullName)) {
-                $filePositions[$file.FullName] = (Get-Content -Path $file.FullName).Count
-                Write-Host "New file detected, monitoring: $($file.FullName)" -ForegroundColor Green
+                $filePositions[$file.FullName] = 0  # Start from beginning
+                Write-Host "Now monitoring: $($file.FullName)" -ForegroundColor Green
             }
         }
         
         # Process each file
-        foreach ($file in $filePositions.Keys) {
+        foreach ($file in $filePositions.Keys.Clone()) {
             if (Test-Path $file) {
                 $newPosition = Process-NewContent -FilePath $file `
                                                -StartLine $filePositions[$file] `
                                                -ContextLines $ContextLines
                 $filePositions[$file] = $newPosition
             }
+            else {
+                $filePositions.Remove($file)
+                Write-Host "Removed monitoring for deleted file: $file" -ForegroundColor Yellow
+            }
         }
         
-        # Wait before next poll
         Start-Sleep -Milliseconds $PollInterval
     }
 }
 catch {
-    Write-Error "Error occurred: $($_.Exception.Message)"
+    Write-Error "Error: $($_.Exception.Message)"
 }
 finally {
     Write-Host "`nMonitoring stopped." -ForegroundColor Cyan
