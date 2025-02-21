@@ -12,7 +12,7 @@ $FilePattern = "*.log"               # Modified to catch all logs
 $PollInterval = 1000                 # Milliseconds between checks (1 second)
 $ContextLines = 2                    # Number of lines before/after to show
 $SearchTerm = "ERROR"                 # Term to search for
-$Debug = $true                       # Enable debug output
+$Debug = $false                       # Enable debug output
 
 # Function to process new content
 function Process-NewContent {
@@ -105,7 +105,110 @@ finally {
     Write-Host "`nMonitoring stopped." -ForegroundColor Cyan
 }
 ```
+Format is correct but the lines are limited
+```bash
+# Real-time log monitor with pause on match
+$Path = "C:\ProgramData\Tableau\Tableau Server\data\tabsvc\logs\apigateway"  # Modified to your actual path
+$FilePattern = "*.log"               # Modified to catch all logs
+$PollInterval = 1000                 # Milliseconds between checks (1 second)
+$ContextLines = 2                    # Number of lines before/after to show
+$SearchTerm = "INFO"                 # Term to search for
+$PauseSeconds = 3                    # How long to pause when match is found
+$Debug = $false                      # Enable debug output
 
+# Function to process new content
+function Process-NewContent {
+    param (
+        [string]$FilePath,
+        [int]$StartLine,
+        [int]$ContextLines
+    )
+    
+    try {
+        $content = Get-Content -Path $FilePath -Raw | ForEach-Object {$_ -split "`r`n"}
+        $totalLines = $content.Count
+        
+        if ($Debug) {
+            Write-Host "Debug: File $FilePath has $totalLines total lines, starting from line $StartLine" -ForegroundColor Gray
+        }
+        
+        if ($totalLines -gt $StartLine) {
+            $newLines = $content[$StartLine..($totalLines - 1)]
+            $matchFound = $false
+            
+            $currentLine = $StartLine
+            foreach ($line in $newLines) {
+                if ($line -match $SearchTerm) {
+                    $matchFound = $true
+                    Write-Host "`n===================================================" -ForegroundColor Cyan
+                    Write-Host "Match found at line $($currentLine + 1) in file:" -ForegroundColor Green
+                    Write-Host "$FilePath" -ForegroundColor Yellow
+                    Write-Host "===================================================`n" -ForegroundColor Cyan
+                    
+                    # Show the matched line with word wrapping for better readability
+                    $wrappedLine = $line -replace "(.{100})", "$1`n  "
+                    Write-Host $wrappedLine -ForegroundColor White
+                    Write-Host "`nPausing for $PauseSeconds seconds..." -ForegroundColor Gray
+                    Start-Sleep -Seconds $PauseSeconds
+                    Write-Host "Continuing scan...`n" -ForegroundColor Gray
+                }
+                $currentLine++
+            }
+            return $totalLines
+        }
+        return $StartLine
+    }
+    catch {
+        Write-Warning "Error in Process-NewContent: $($_.Exception.Message)"
+        return $StartLine
+    }
+}
+
+try {
+    if (-not (Test-Path $Path)) {
+        throw "Path '$Path' does not exist!"
+    }
+
+    $filePositions = @{}
+    Clear-Host
+    Write-Host "`nStarting monitoring of $Path" -ForegroundColor Cyan
+    Write-Host "Looking for '$SearchTerm' in files matching '$FilePattern'" -ForegroundColor Cyan
+    Write-Host "Will pause for $PauseSeconds seconds when matches are found" -ForegroundColor Cyan
+    Write-Host "Press Ctrl+C to stop`n" -ForegroundColor Cyan
+
+    while ($true) {
+        $currentFiles = Get-ChildItem -Path $Path -Filter $FilePattern -Recurse
+        
+        foreach ($file in $currentFiles) {
+            if (-not $filePositions.ContainsKey($file.FullName)) {
+                $filePositions[$file.FullName] = 0  # Start from beginning
+                Write-Host "Now monitoring: $($file.FullName)" -ForegroundColor Green
+            }
+        }
+        
+        foreach ($file in $filePositions.Keys.Clone()) {
+            if (Test-Path $file) {
+                $newPosition = Process-NewContent -FilePath $file `
+                                               -StartLine $filePositions[$file] `
+                                               -ContextLines $ContextLines
+                $filePositions[$file] = $newPosition
+            }
+            else {
+                $filePositions.Remove($file)
+                Write-Host "Removed monitoring for deleted file: $file" -ForegroundColor Yellow
+            }
+        }
+        
+        Start-Sleep -Milliseconds $PollInterval
+    }
+}
+catch {
+    Write-Error "Error: $($_.Exception.Message)"
+}
+finally {
+    Write-Host "`nMonitoring stopped." -ForegroundColor Cyan
+}
+```
 ### Key Changes:
 1. **Hardcoded Configuration**: 
    - Removed the `param` block and moved the configuration variables (`$Path`, `$FilePattern`, `$PollInterval`, `$ContextLines`) to the top of the script.
