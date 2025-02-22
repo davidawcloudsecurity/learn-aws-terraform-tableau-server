@@ -33,7 +33,7 @@ function Process-NewContent {
             $currentLine = $StartLine
             
             foreach ($line in $newLines) {
-                if ($line -cmatch $SearchTerm) {
+                if ($line -cmatch $SearchTerm) { # match or imatch for general searches
                     Write-Host "`n==================== MATCH FOUND ====================`n" -ForegroundColor Cyan
                     Write-Host "File: $FilePath" -ForegroundColor Green
                     Write-Host "Line: $($currentLine + 1)" -ForegroundColor Green
