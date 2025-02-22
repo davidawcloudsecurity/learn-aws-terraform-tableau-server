@@ -4,6 +4,7 @@ how to read logs
 Get-Content 'C:\ProgramData\Tableau\Tableau Server\data\tabsvc\logs\tabadmincontroller\tabadmincontroller_node1-0.log' -Tail 200 | Select-String -Context 5 "2025-02-21 14:24:57"
 ```
 Here's the updated version with the path hardcoded in the script:
+
 Variable to pause
 ```powershell
 # Real-time log monitor with context display
