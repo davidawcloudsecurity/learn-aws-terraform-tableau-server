@@ -4,7 +4,7 @@ how to read logs
 Get-Content 'C:\ProgramData\Tableau\Tableau Server\data\tabsvc\logs\tabadmincontroller\tabadmincontroller_node1-0.log' -Tail 200 | Select-String -Context 5 "2025-02-21 14:24:57"
 ```
 Here's the updated version with the path hardcoded in the script:
-
+https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_comparison_operators?view=powershell-7.5
 Variable to pause
 ```powershell
 # Real-time log monitor with context display
@@ -33,7 +33,7 @@ function Process-NewContent {
             $currentLine = $StartLine
             
             foreach ($line in $newLines) {
-                if ($line -match $SearchTerm) {
+                if ($line -match $SearchTerm) { # imatch for exact
                     Write-Host "`n==================== MATCH FOUND ====================`n" -ForegroundColor Cyan
                     Write-Host "File: $FilePath" -ForegroundColor Green
                     Write-Host "Line: $($currentLine + 1)" -ForegroundColor Green
