@@ -52,4 +52,57 @@ Setting up high availability (HA) for Tableau Server with just 2 nodes requires 
 
 For true HA, you would ideally have at least 3 nodes to avoid split-brain scenarios with the Coordination Service, but 2 nodes will provide basic redundancy for most critical services.
 
-Would you like more specific details about any particular part of this setup process?
+# Configuring Repository Failover on Node 2 for Tableau Server
+
+Here's a step-by-step guide to configure the Repository (PostgreSQL database) for failover on Node 2:
+
+1. **Access the TSM Web Interface**:
+   - Open a browser and go to https://[Node1Name]:8850
+   - Sign in with your TSM administrator credentials
+
+2. **Configure the Repository on Node 2**:
+   - Navigate to the "Configuration" tab
+   - Click on "Topology" in the left navigation pane
+   - Under Node 2, check the box for "Repository"
+   - Under the Repository settings, select "Secondary" from the dropdown
+
+3. **Apply the Changes**:
+   - Click "Save Pending Changes" in the upper right
+   - Click "Apply Changes and Restart"
+
+4. **Verify via Command Line (Alternative Method)**:
+   ```bash
+   # SSH into Node 1 (primary node)
+   ssh [username]@[Node1IP]
+   
+   # Configure repository on Node 2
+   tsm topology set-process -n node2 -pr repository -c 1
+   
+   # Apply the pending changes
+   tsm pending-changes apply
+   ```
+
+5. **Verify the Configuration**:
+   ```bash
+   # Check repository status
+   tsm status -v
+   
+   # Should show repository running on both nodes, with Node 2 in passive mode
+   ```
+
+6. **Test Failover**:
+   - You can test failover by temporarily stopping the repository on Node 1:
+   ```bash
+   tsm topology set-process -n node1 -pr repository -c 0
+   tsm pending-changes apply
+   ```
+   - Verify that Node 2's repository becomes active
+   - Restore Node 1's repository afterward:
+   ```bash
+   tsm topology set-process -n node1 -pr repository -c 1
+   tsm pending-changes apply
+   ```
+
+The repository failover is automatic once properly configured. If the primary repository fails, Tableau Server will automatically switch to using the secondary repository with minimal downtime.
+
+Would you like me to explain how to set up any other components for your 2-node HA configuration?
