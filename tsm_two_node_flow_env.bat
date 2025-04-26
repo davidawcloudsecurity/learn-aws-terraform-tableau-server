@@ -16,6 +16,9 @@ tsm topology nodes get-bootstrap-file --file "c:\temp\%FILENAME%"
 
 tsm topology set-process -n node2 -pr backgrounder -c 4
 tsm topology set-process -n node2 -pr gateway -c 1
+tsm topology set-process -n node2 -pr flowprocessor -c 1
+tsm topology set-process -n node2 -pr floweditor  -c 1
+tsm topology set-process -n node2 -pr flowminerva  -c 1
 tsm topology set-process -n node2 -r flows
 tsm topology set-node-role -n node1 -r no-flows
 tsm pending-changes apply
