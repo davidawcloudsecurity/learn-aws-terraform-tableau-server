@@ -18,6 +18,7 @@ tsm topology set-process -n node2 -pr backgrounder -c 4
 tsm topology set-process -n node2 -pr gateway -c 1
 tsm topology set-process -n node2 -r flows
 tsm topology set-process -n node1 -r no-flows
+tsm pending-changes apply
 
 echo File created: %FILENAME%
 endlocal
