@@ -14,5 +14,10 @@ set "FILENAME=bootstrap_%today%.json"
 :: Step 3: Generate bootstrap file
 tsm topology nodes get-bootstrap-file --file "c:\temp\%FILENAME%"
 
+tsm topology set-process -n node2 -pr backgrounder -c 4
+tsm topology set-process -n node2 -pr gateway -c 1
+tsm topology set-process -n node2 -r flows
+tsm topology set-process -n node1 -r no-flows
+
 echo File created: %FILENAME%
 endlocal
