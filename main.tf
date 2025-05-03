@@ -73,6 +73,12 @@ resource "aws_route_table_association" "public_subnet_association" {
   route_table_id = aws_route_table.public_route_table.id
 }
 
+resource "aws_security_group" "new_security_group" {
+    name        = "new-security-group"
+    description = "New security group for importing"
+    vpc_id      = aws_vpc.main.id
+}
+
 # Create Security Group
 resource "aws_security_group" "public_security_group" {
   name        = "allow_80_443"
