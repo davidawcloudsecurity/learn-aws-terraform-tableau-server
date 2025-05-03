@@ -138,12 +138,25 @@ resource "aws_iam_instance_profile" "ec2_session_manager_profile" {
 # Launch EC2 Instance with Session Manager
 resource "aws_instance" "windows2022_instance" {
   ami                    = var.ami
-  instance_type          = "t2.micro"
+  instance_type          = "t3.xlarge"
   subnet_id              = aws_subnet.public_subnet.id
   vpc_security_group_ids = [aws_security_group.public_security_group.id]
   iam_instance_profile   = aws_iam_instance_profile.ec2_session_manager_profile.name
   user_data = filebase64("${var.setup_filename}")
-
+  # Example PowerShell script saved as setup_tableau_server.ps1
+  user_data = <<-EOF
+  <powershell>
+  # Update Windows
+  # Install-WindowsUpdate -AcceptAll -IgnoreReboot
+  Invoke-WebRequest -Uri "https://downloads.tableau.com/esdalt/2024.2.10/TableauServer-64bit-2024-2-10.exe" -OutFile "C:\\Temp\\TableauServerInstaller.exe"
+  # Install Tableau Server
+  Start-Process -FilePath "C:\\Temp\\TableauServerInstaller.exe" -ArgumentList "/silent ACCEPTEULA=1 ACTIVATIONSERVICE='1'" -Wait
+  
+  # Reboot after installation
+  # Restart-Computer -Force
+  </powershell>
+  EOF
+  
   tags = {
     Name = "tableau server"
   }
