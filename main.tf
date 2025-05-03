@@ -156,6 +156,7 @@ resource "aws_instance" "windows2022_instance" {
   # Example PowerShell script saved as setup_tableau_server.ps1
   user_data = <<-EOF
   <script>
+  net user ssm-user P@ssw0rd12345
   mkdir c:\temp
   cd c:\temp
   curl -LO "https://downloads.tableau.com/esdalt/2024.2.10/TableauServer-64bit-2024-2-10.exe"
