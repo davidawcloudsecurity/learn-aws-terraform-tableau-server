@@ -147,6 +147,9 @@ resource "aws_instance" "windows2022_instance" {
   <powershell>
   # Update Windows
   # Install-WindowsUpdate -AcceptAll -IgnoreReboot
+  $tempFolder = "C:\temp"
+  New-Item -ItemType Directory -Path $tempFolder
+  Write-Host "Temporary folder created at $tempFolder"
   Invoke-WebRequest -Uri "https://downloads.tableau.com/esdalt/2024.2.10/TableauServer-64bit-2024-2-10.exe" -OutFile "C:\\Temp\\TableauServerInstaller.exe"
   # Install Tableau Server
   Start-Process -FilePath "C:\\Temp\\TableauServerInstaller.exe" -ArgumentList "/silent ACCEPTEULA=1 ACTIVATIONSERVICE='1'" -Wait
