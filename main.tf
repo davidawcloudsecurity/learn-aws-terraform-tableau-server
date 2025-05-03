@@ -14,16 +14,16 @@ variable "region" {
 }
 
 variable setup_filename {
-  default = "setup_wordpress_nginx_ready_state.sh"
+  default = "setup_tableau_server.sh"
 }
 
 variable "ami" {
-  default = "ami-0866a3c8686eaeeba" # Ubuntu Server 20.04 LTS (HVM), SSD Volume Type, us-east-1
+  default = "ami-0c798d4b81e585f36" # Microsoft Windows 2022 Datacenter edition.
 }
 
 # Create VPC
 resource "aws_vpc" "main" {
-  cidr_block = "172.16.0.0/16"
+  cidr_block = "192.168.0.0/16"
   enable_dns_support   = true
   enable_dns_hostnames = true
 
@@ -35,7 +35,7 @@ resource "aws_vpc" "main" {
 # Create Subnet
 resource "aws_subnet" "public_subnet" {
   vpc_id            = aws_vpc.main.id
-  cidr_block        = "172.16.10.0/24"
+  cidr_block        = "192.168.10.0/24"
   availability_zone = "${var.region}a"
   map_public_ip_on_launch = true
 
@@ -136,7 +136,7 @@ resource "aws_iam_instance_profile" "ec2_session_manager_profile" {
 }
 
 # Launch EC2 Instance with Session Manager
-resource "aws_instance" "ubuntu_instance" {
+resource "aws_instance" "windows2022_instance" {
   ami                    = var.ami
   instance_type          = "t2.micro"
   subnet_id              = aws_subnet.public_subnet.id
@@ -145,6 +145,6 @@ resource "aws_instance" "ubuntu_instance" {
   user_data = filebase64("${var.setup_filename}")
 
   tags = {
-    Name = "my-first-web-app"
+    Name = "tableau server"
   }
 }
