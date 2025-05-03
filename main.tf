@@ -144,19 +144,12 @@ resource "aws_instance" "windows2022_instance" {
   iam_instance_profile   = aws_iam_instance_profile.ec2_session_manager_profile.name
   # Example PowerShell script saved as setup_tableau_server.ps1
   user_data = <<-EOF
-  <powershell>
-  # Update Windows
-  # Install-WindowsUpdate -AcceptAll -IgnoreReboot
-  $tempFolder = "C:\temp"
-  New-Item -ItemType Directory -Path $tempFolder
-  Write-Host "Temporary folder created at $tempFolder"
-  Invoke-WebRequest -Uri "https://downloads.tableau.com/esdalt/2024.2.10/TableauServer-64bit-2024-2-10.exe" -OutFile "C:\\Temp\\TableauServerInstaller.exe"
-  # Install Tableau Server
-  Start-Process -FilePath "C:\\Temp\\TableauServerInstaller.exe" -ArgumentList "/silent ACCEPTEULA=1 ACTIVATIONSERVICE='1'" -Wait
-  
-  # Reboot after installation
-  # Restart-Computer -Force
-  </powershell>
+  <script>
+  mkdir c:\temp
+  cd c:\temp
+  curl -LO "https://downloads.tableau.com/esdalt/2024.2.10/TableauServer-64bit-2024-2-10.exe"
+  start /wait TableauServer-64bit-2024-2-10.exe /silent ACCEPTEULA=1 ACTIVATIONSERVICE='1'  
+  </script>
   EOF
   
   tags = {
