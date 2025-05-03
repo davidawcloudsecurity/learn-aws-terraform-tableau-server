@@ -142,6 +142,16 @@ resource "aws_instance" "windows2022_instance" {
   subnet_id              = aws_subnet.public_subnet.id
   vpc_security_group_ids = [aws_security_group.public_security_group.id]
   iam_instance_profile   = aws_iam_instance_profile.ec2_session_manager_profile.name
+
+  metadata_options {
+    http_tokens = "required"
+  }
+
+  root_block_device {
+    volume_size = 50
+    volume_type = "gp2"
+  }
+
   # Example PowerShell script saved as setup_tableau_server.ps1
   user_data = <<-EOF
   <script>
@@ -151,7 +161,7 @@ resource "aws_instance" "windows2022_instance" {
   start /wait TableauServer-64bit-2024-2-10.exe /silent ACCEPTEULA=1 ACTIVATIONSERVICE='1'  
   </script>
   EOF
-  
+
   tags = {
     Name = "tableau server"
   }
