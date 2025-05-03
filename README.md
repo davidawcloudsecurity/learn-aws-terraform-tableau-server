@@ -1,4 +1,9 @@
 # learn-tableau
+
+### Run this if you know how to install terraform in cloudshell
+```
+alias tf="terraform"; alias tfa="terraform apply --auto-approve"; alias tfd="terraform destroy --auto-approve"; alias tfm="terraform init; terraform fmt; terraform validate; terraform plan"; sudo yum install -y yum-utils shadow-utils; sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux/hashicorp.repo; sudo yum -y install terraform; terraform init
+```
 how to read logs
 ```bash
 Get-Content 'C:\ProgramData\Tableau\Tableau Server\data\tabsvc\logs\tabadmincontroller\tabadmincontroller_node1-0.log' -Tail 200 | Select-String -Context 5 "2025-02-21 14:24:57"
