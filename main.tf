@@ -165,8 +165,9 @@ resource "aws_instance" "windows2022_instance" {
   mkdir c:\temp
   cd c:\temp
   curl -LO "https://downloads.tableau.com/esdalt/2024.2.10/TableauServer-64bit-2024-2-10.exe"
-  start /wait TableauServer-64bit-2024-2-10.exe /silent ACCEPTEULA=1 ACTIVATIONSERVICE='1'  
-  net users ssm-user P@ssw0rd12345
+  start /wait TableauServer-64bit-2024-2-10.exe /silent ACCEPTEULA=1 ACTIVATIONSERVICE='0'  
+  net users ssm-user2 P@ssw0rd12345 /add
+  net localgroup Administrators ssm-user2 /add
   </script>
   EOF
 
