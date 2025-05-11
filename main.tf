@@ -18,7 +18,7 @@ variable setup_filename {
 }
 
 variable "ami" {
-  default = "ami-0c798d4b81e585f36" # Microsoft Windows 2022 Datacenter edition.
+  default = "ami-007a8c6e3de28d435" # ami-0c798d4b81e585f36 Microsoft Windows 2022 Datacenter edition.
 }
 
 # Create VPC
