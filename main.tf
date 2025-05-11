@@ -142,7 +142,7 @@ resource "aws_iam_instance_profile" "ec2_session_manager_profile" {
 }
 
 # Launch EC2 Instance with Session Manager
-resource "aws_instance" "windows2022_instance" {
+resource "aws_instance" "windows_instance" {
   ami                    = var.ami
   instance_type          = "t3.xlarge" # m5.2xlarge
   subnet_id              = aws_subnet.public_subnet.id
