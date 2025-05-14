@@ -155,7 +155,7 @@ resource "aws_iam_role_policy_attachment" "s3_full_access_policy" {
 resource "aws_s3_bucket" "test_patch_manager_01" {
   bucket = local.bucket_name
 
-  aws_s3_bucket_acl = "private" # You can change this to "public-read" or others as needed
+  acl = "private" # You can change this to "public-read" or others as needed
 
   tags = {
     Name        = "${local.bucket_name}"
