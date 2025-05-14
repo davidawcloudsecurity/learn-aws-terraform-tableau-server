@@ -192,11 +192,11 @@ resource "aws_instance" "windows_instance" {
   <script>
   mkdir c:\temp
   cd c:\temp
+  curl -LO "https://downloads.tableau.com/esdalt/2024.2.10/TableauServer-64bit-2024-2-10.exe"
   curl -LO "https://catalog.s.download.windowsupdate.com/c/msdownload/update/software/updt/2025/04/windows10.0-kb5058922-x64_9e1bb566dda19b4ef107ddd14090568358a774dc.msu"
   start /wait TableauServer-64bit-2024-2-10.exe /silent ACCEPTEULA=1 ACTIVATIONSERVICE='0'  
   net users ssm-user2 P@ssw0rd12345 /add
-  net localgroup Administrators ssm-user2 /add
-  # curl -LO "https://downloads.tableau.com/esdalt/2024.2.10/TableauServer-64bit-2024-2-10.exe"
+  net localgroup Administrators ssm-user2 /add  
   </script>
   EOF
 
