@@ -135,6 +135,12 @@ resource "aws_iam_role_policy_attachment" "session_manager_policy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
+# Attach S3 Full Access to test patch manager
+resource "aws_iam_role_policy_attachment" "s3_full_access_policy" {
+  role       = aws_iam_role.ec2_session_manager_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonS3FullAccess"
+}
+
 # Create Instance Profile for the Role
 resource "aws_iam_instance_profile" "ec2_session_manager_profile" {
   name = "ec2_session_manager_profile"
