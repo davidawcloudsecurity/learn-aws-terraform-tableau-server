@@ -141,6 +141,18 @@ resource "aws_iam_role_policy_attachment" "s3_full_access_policy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonS3FullAccess"
 }
 
+# Create S3 Bucket
+resource "aws_s3_bucket" "test_patch_manager_01" {
+  bucket = "test-patch-manager-01"
+
+  acl = "private" # You can change this to "public-read" or others as needed
+
+  tags = {
+    Name        = "test-patch-manager-01"
+    Environment = "Test"
+  }
+}
+
 # Create Instance Profile for the Role
 resource "aws_iam_instance_profile" "ec2_session_manager_profile" {
   name = "ec2_session_manager_profile"
