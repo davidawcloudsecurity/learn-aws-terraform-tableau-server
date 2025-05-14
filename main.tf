@@ -13,8 +13,13 @@ variable "region" {
   default = "us-east-1"
 }
 
+# Generate a random suffix
+resource "random_id" "bucket_suffix" {
+  byte_length = 4
+}
+
 variable "bucket_name" {
-  default = "bucket-name"
+  default = "bucket-name-${random_id.bucket_suffix}"
 }
 
 variable setup_filename {
@@ -147,7 +152,7 @@ resource "aws_iam_role_policy_attachment" "s3_full_access_policy" {
 
 # Create S3 Bucket
 resource "aws_s3_bucket" "test_patch_manager_01" {
-  bucket = "test-patch-manager-01"
+  bucket = var.bucket_name
 
   acl = "private" # You can change this to "public-read" or others as needed
 
