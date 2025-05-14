@@ -13,6 +13,10 @@ variable "region" {
   default = "us-east-1"
 }
 
+variable "bucket_name" {
+  default = "bucket-name"
+}
+
 variable setup_filename {
   default = "setup_tableau_server.sh"
 }
