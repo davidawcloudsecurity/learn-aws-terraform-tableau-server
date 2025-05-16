@@ -203,6 +203,6 @@ resource "aws_instance" "windows_instance" {
 
   tags = {
     Name = "tableau server"
-    PatchGroup = Windows2019
+    PatchGroup = "windows2019"
   }
 }
