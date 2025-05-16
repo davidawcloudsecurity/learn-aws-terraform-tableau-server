@@ -154,6 +154,7 @@ resource "aws_iam_role_policy_attachment" "s3_full_access_policy" {
 # Create S3 Bucket
 resource "aws_s3_bucket" "test_patch_manager_01" {
   bucket = local.bucket_name
+  force_destroy = true 
 
   acl = "private" # You can change this to "public-read" or others as needed
 
